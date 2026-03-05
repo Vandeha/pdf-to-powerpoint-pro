@@ -1,84 +1,271 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PDF to Editable PPT</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to PPT Pro | Editable & Layout-Perfect</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 400px; }
-        #dropzone { border: 2px dashed #007bff; padding: 40px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
-        #dropzone:hover { background: #e7f0ff; }
-        #progressContainer { width: 100%; height: 12px; background: #eee; border-radius: 6px; display: none; overflow: hidden; margin: 20px 0; }
-        #progressBar { width: 0%; height: 100%; background: #007bff; transition: width 0.4s; }
-        button { background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; display: none; width: 100%; }
-        .status { color: #555; font-size: 14px; margin-top: 10px; }
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --gray: #6c757d;
+            --bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Dropzone Styling */
+        #dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            position: relative;
+        }
+
+        #dropzone:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+        }
+
+        #dropzone.dragging {
+            border-color: var(--success);
+            background: #e9f7ef;
+        }
+
+        #dropzone i {
+            display: block;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Progress Bar */
+        #progressContainer {
+            display: none;
+            margin: 25px 0;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        #statusText {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #downloadBtn {
+            background-color: var(--success);
+            color: white;
+        }
+
+        #resetBtn {
+            background-color: var(--gray);
+            color: white;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>PDF → PPT Pro</h2>
-        <div id="dropzone" onclick="document.getElementById('fileInput').click()">
-            Drag PDF here or Click to Upload
-            <input type="file" id="fileInput" hidden accept=".pdf">
+
+<div class="container">
+    <h1>PDF → PowerPoint Pro</h1>
+    <p class="subtitle">Convert to editable text and standalone images</p>
+
+    <div id="dropzone">
+        <div id="dropzoneText">
+            <strong>📁 Click to upload</strong> or drag and drop<br>
+            <small>PDF files only</small>
         </div>
-        <div id="progressContainer"><div id="progressBar"></div></div>
-        <div id="status" class="status"></div>
-        <button id="downloadBtn">Download PowerPoint</button>
+        <input type="file" id="fileInput" accept=".pdf">
     </div>
 
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const status = document.getElementById('status');
-        const downloadBtn = document.getElementById('downloadBtn');
+    <div id="progressContainer">
+        <div class="progress-track">
+            <div id="progressBar"></div>
+        </div>
+        <div id="statusText">Preparing your file...</div>
+    </div>
 
-        fileInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    <div class="btn-group" id="actionGroup">
+        <button id="downloadBtn">📥 Download PPTX</button>
+        <button id="resetBtn">🔄 Convert Another</button>
+    </div>
+</div>
 
-            // Reset UI
-            progressContainer.style.display = 'block';
-            downloadBtn.style.display = 'none';
-            status.innerText = "Connecting to server...";
-            
-            // Fake progress animation
-            let progress = 0;
-            const interval = setInterval(() => {
-                if (progress < 90) {
-                    progress += 2;
-                    progressBar.style.width = progress + "%";
-                    status.innerText = "Converting layout and text...";
-                }
-            }, 200);
+<script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const actionGroup = document.getElementById('actionGroup');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
 
-            const formData = new FormData();
-            formData.append('file', file);
+    let currentBlob = null;
+    let currentFileName = "";
 
-            try {
-                const response = await fetch('/convert', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error("Conversion failed");
+    // Trigger file input
+    dropzone.onclick = () => fileInput.click();
 
-                const blob = await response.blob();
-                clearInterval(interval);
-                
-                // Finish Progress
-                progressBar.style.width = "100%";
-                status.innerText = "Conversion Complete!";
-                
-                // Setup Download
-                downloadBtn.style.display = 'block';
-                downloadBtn.onclick = () => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = file.name.replace(".pdf", ".pptx");
-                    a.click();
-                };
-            } catch (err) {
-                clearInterval(interval);
-                status.innerText = "Error during conversion.";
+    // Handle File Selection
+    fileInput.onchange = (e) => handleFiles(e.target.files);
+
+    // Drag and Drop Logic
+    dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dragging'); };
+    dropzone.ondragleave = () => dropzone.classList.remove('dragging');
+    dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragging');
+        handleFiles(e.dataTransfer.files);
+    };
+
+    async function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        if (file.type !== "application/pdf") {
+            alert("Please upload a PDF file.");
+            return;
+        }
+
+        currentFileName = file.name.replace(".pdf", ".pptx");
+        prepareUIForUpload();
+
+        // 1. Start Fake Progress for Server Wake-up (Free Tier)
+        let progress = 0;
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += (progress < 40) ? 1.5 : 0.4;
+                progressBar.style.width = progress + "%";
+                statusText.innerText = progress < 30 ? "Connecting to free server..." : "Converting layout and colors...";
             }
-        };
-    </script>
+        }, 300);
+
+        // 2. Send to Server
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            // Note: The URL is '/' because PythonAnywhere/Render host the HTML and API together
+            const response = await fetch('/convert', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Conversion failed");
+
+            currentBlob = await response.blob();
+            clearInterval(interval);
+            
+            // 3. Finish UI
+            progressBar.style.width = "100%";
+            statusText.innerText = "Success! Your editable PPTX is ready.";
+            actionGroup.style.display = 'flex';
+        } catch (err) {
+            clearInterval(interval);
+            statusText.innerText = "Error: Conversion failed. Check file size.";
+            progressBar.style.backgroundColor = "#dc3545";
+            resetBtn.style.display = 'block';
+            actionGroup.style.display = 'flex';
+            downloadBtn.style.display = 'none';
+        }
+    }
+
+    function prepareUIForUpload() {
+        dropzone.style.display = 'none';
+        progressContainer.style.display = 'block';
+        actionGroup.style.display = 'none';
+        progressBar.style.width = "0%";
+        progressBar.style.backgroundColor = "var(--primary)";
+    }
+
+    downloadBtn.onclick = () => {
+        if (!currentBlob) return;
+        const url = URL.createObjectURL(currentBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentFileName;
+        a.click();
+    };
+
+    resetBtn.onclick = () => {
+        dropzone.style.display = 'block';
+        progressContainer.style.display = 'none';
+        actionGroup.style.display = 'none';
+        fileInput.value = "";
+        currentBlob = null;
+    };
+</script>
+
 </body>
 </html>
