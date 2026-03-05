@@ -1,0 +1,29 @@
+name: Convert PDF to PPTX
+on:
+  push:
+    paths:
+      - 'pdfs/**' # Only runs when files are added to the pdfs folder
+
+jobs:
+  convert_file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send to Render and Get PPTX
+        run: |
+          # This loops through any new PDFs and sends them to your Render API
+          for file in pdfs/*.pdf; do
+            filename=$(basename "$file" .pdf)
+            curl -X POST -F "file=@$file" https://your-app-name.onrender.com/convert \
+                 -o "powerpoints/${filename}.pptx"
+          done
+
+      - name: Commit and Push PPTX
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add powerpoints/*.pptx
+          git commit -m "Automated conversion: Added PPTX files"
+          git push
